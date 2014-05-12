@@ -1,0 +1,70 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1>Cascading dropdowns with knockout sample</h1>
+</div>
+
+<div class="row">
+    <form id="knockoutapp" class="form-horizontal" action="" method="post">
+        <fieldset>
+            <legend class="text-center">Choose item</legend>
+
+            <div class="form-group">
+                <label for="category" class="control-label">Category</label>
+                <select class="form-control" name="category" data-bind="remoteOptions:{ url:'/categories/get' }, optionsText:'Text', value: category"></select>
+                <br/>
+                <div data-bind="with:category">
+                    <label>Selected category:</label> Id:<span data-bind="text: Id"></span>, Name:<span data-bind="text: Text"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="category" class="control-label">Subcategory</label>
+                <select class="form-control" name="category" data-bind="remoteOptions:{ url:'/categories/getsubcategories' }, value: subcategory"></select>
+                <br/>
+                <div data-bind="with:subcategory">
+                    <label>Selected subcategory:</label> <span data-bind="text: $data"></span>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+
+</div>
+
+@section scripts{
+
+    <script src="~/Scripts/knockout-3.1.0.debug.js"></script>
+    <script src="~/Scripts/knockout.activity.js"></script>
+    <script type="text/javascript">
+        ko.bindingHandlers['remoteOptions'] = {
+            'init': function (element, valueAccessor, allBindings) {
+                if (!(allBindings.has('value') && ko.isObservable(allBindings.get('value'))))
+                    throw "remote dropdown must have value binding that corresponds to observable on model";
+
+                var options = ko.observableArray([]);
+                allBindings.get('value')['__remoteDropdown_options'] = options;
+
+                var binding = valueAccessor();
+                $.when($.getJSON(binding.url))
+                    .then(options);
+
+                ko.bindingHandlers['options'].init(element);
+            },
+            'update': function (element, valueAccessor, allBindings, bindingContext) {
+
+                function optionsValueAccessor() {
+                    return allBindings.get('value')['__remoteDropdown_options'];
+                }
+                ko.bindingHandlers['options'].update(element, optionsValueAccessor, allBindings);
+            }
+        };
+    </script>
+    <script type="text/javascript">
+        var viewModel = {
+            category: ko.observable(),
+            subcategory: ko.observable(),
+        };
+        ko.applyBindings(viewModel, document.getElementById('knockoutapp'));
+    </script>
+}
