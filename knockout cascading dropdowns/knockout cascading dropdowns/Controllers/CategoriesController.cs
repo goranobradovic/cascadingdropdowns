@@ -10,7 +10,7 @@
     {
         public enum Category
         {
-            Audi,
+            Audi = 1,
             BMW,
             Citroen,
         }
